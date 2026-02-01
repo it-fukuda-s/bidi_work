@@ -48,6 +48,22 @@ python -m uvicorn main:app --host 0.0.0.0 --port 8080
 
 http://localhost:8080
 
+## Dockerで起動
+
+```bash
+# イメージをビルド
+docker build -t bidi-app .
+
+# コンテナを起動
+docker run -d -p 8080:8080 --env-file app/.env --name bidi-container bidi-app
+
+# ブラウザでアクセス
+# http://localhost:8080
+
+# 停止する場合
+docker stop bidi-container && docker rm bidi-container
+```
+
 ## カスタマイズ
 
 エージェントの個性を変更するには `app/my_agent/agent.py` を編集してください。
@@ -55,7 +71,7 @@ http://localhost:8080
 ```python
 agent = Agent(
     name="my_custom_agent",
-    model="gemini-live-2.5-flash-native-audio",
+    model="gemini-2.5-flash-native-audio-preview-12-2025",  # 最新モデル名を確認
     instruction="""あなたは関西弁で話すAIアシスタントです。
     フレンドリーで親しみやすい話し方をしてください。
     """,
@@ -93,6 +109,7 @@ gcloud run deploy bidi-demo \
 - [ADK ドキュメント](https://google.github.io/adk-docs/)
 - [Gemini Live API](https://ai.google.dev/gemini-api/docs/live)
 - [Google AI Studio](https://aistudio.google.com/)
+- [Live API対応モデル一覧](https://ai.google.dev/gemini-api/docs/models#live-models) - モデル名の最新情報
 
 ## 参考・ベース
 
