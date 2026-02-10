@@ -8,6 +8,9 @@ Google Agent Development Kit (ADK) を使用したリアルタイム音声AIア�
 - リアルタイム音声応答
 - 自然な割り込み対応
 - Google Search ツール連携
+- **Aoede音声**: フレンドリーで温かい女性の声
+- **感情的対話**: ユーザーの感情に応じた応答
+- **プロアクティブ応答**: 積極的な提案とフォローアップ
 
 ## クイックスタート
 
@@ -66,18 +69,50 @@ docker stop bidi-container && docker rm bidi-container
 
 ## カスタマイズ
 
-エージェントの個性を変更するには `app/my_agent/agent.py` を編集してください。
+### エージェントの個性変更
+
+`app/my_agent/agent.py` を編集:
 
 ```python
 agent = Agent(
     name="my_custom_agent",
-    model="gemini-2.5-flash-native-audio-preview-12-2025",  # 最新モデル名を確認
+    model="gemini-2.5-flash-native-audio-preview-12-2025",
     instruction="""あなたは関西弁で話すAIアシスタントです。
     フレンドリーで親しみやすい話し方をしてください。
     """,
     tools=[google_search],
 )
 ```
+
+### 音声設定の変更
+
+`app/main.py` の `RunConfig` を編集:
+
+```python
+run_config = RunConfig(
+    # ... 他の設定 ...
+    speech_config=types.SpeechConfig(
+        voice_config=types.VoiceConfig(
+            prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                voice_name="Aoede"  # 声の種類を変更
+            )
+        )
+    ),
+    enable_affective_dialog=True,  # 感情的対話
+    proactivity=types.ProactivityConfig(proactive_audio=True),  # プロアクティブ応答
+)
+```
+
+#### 利用可能な声
+
+| 声 | 特徴 |
+|----|------|
+| **Aoede** | フレンドリーで温かい女性（現在の設定） |
+| Kore | 柔らかい女性 |
+| Charon | プロフェッショナルな男性 |
+| Puck | 明るく元気 |
+
+詳細: [Gemini Live API Guide](https://ai.google.dev/gemini-api/docs/live-guide)
 
 ## ディレクトリ構成
 

@@ -1,4 +1,10 @@
-"""Step 8: Add image input for multimodal AI."""
+"""ADK Bidi-streaming リアルタイム音声AIエージェント
+
+音声設定:
+- voice_name: Aoede（フレンドリーで温かい女性の声）
+- enable_affective_dialog: ユーザーの感情に応じた応答
+- proactive_audio: 積極的な応答提案
+"""
 
 import asyncio
 import base64
@@ -13,7 +19,7 @@ from fastapi.staticfiles import StaticFiles
 from google.adk.agents.live_request_queue import LiveRequestQueue
 from google.adk.agents.run_config import RunConfig, StreamingMode
 from google.adk.runners import Runner
-from google.adk.sessions import InMemorySessionService
+from google.adk.sessions import DatabaseSessionService
 from google.genai import types
 
 # Suppress noisy warnings
@@ -30,7 +36,12 @@ app = FastAPI()
 static_dir = Path(__file__).parent / "static"
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
-session_service = InMemorySessionService()
+# セッション永続化: SQLiteに会話履歴を保存（再起動しても継続可能）
+# dataディレクトリに保存することで、Dockerボリュームマウントで永続化可能
+DATA_DIR = Path(__file__).parent / "data"
+DATA_DIR.mkdir(exist_ok=True)
+DB_PATH = DATA_DIR / "sessions.db"
+session_service = DatabaseSessionService(db_url=f"sqlite+aiosqlite:///{DB_PATH}")
 runner = Runner(app_name=APP_NAME, agent=agent, session_service=session_service)
 
 
@@ -53,6 +64,18 @@ async def websocket_endpoint(
         response_modalities=["AUDIO"],
         input_audio_transcription=types.AudioTranscriptionConfig(),
         output_audio_transcription=types.AudioTranscriptionConfig(),
+        # 音声設定: Aoede（フレンドリーで温かい女性の声）
+        speech_config=types.SpeechConfig(
+            voice_config=types.VoiceConfig(
+                prebuilt_voice_config=types.PrebuiltVoiceConfig(
+                    voice_name="Aoede"
+                )
+            )
+        ),
+        # 感情的対話: ユーザーの感情に応じた応答スタイルの調整
+        enable_affective_dialog=True,
+        # プロアクティブ応答: 積極的に提案や補足を行う
+        proactivity=types.ProactivityConfig(proactive_audio=True),
     )
 
     session = await session_service.get_session(

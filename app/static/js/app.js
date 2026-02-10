@@ -8,7 +8,9 @@
 
 // Connect the server with a WebSocket connection
 const userId = "demo-user";
-const sessionId = "demo-session-" + Math.random().toString(36).substring(7);
+// セッションIDをlocalStorageに保存してリロードしても継続できるようにする
+const sessionId = localStorage.getItem("sessionId") || "demo-session-" + Math.random().toString(36).substring(7);
+localStorage.setItem("sessionId", sessionId);
 let websocket = null;
 let is_audio = false;
 
