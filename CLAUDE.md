@@ -18,7 +18,9 @@ Google AI Studio の Gemini Live API を利用。
 │   ├── app/
 │   │   ├── main.py            # FastAPI サーバー（RunConfig含む）
 │   │   ├── my_agent/
-│   │   │   └── agent.py       # エージェント定義
+│   │   │   ├── agent.py       # メインエージェント
+│   │   │   ├── prompt.py      # メインプロンプト
+│   │   │   └── sub_agents/    # サブエージェント（mysty, doctor）
 │   │   ├── static/            # フロントエンド
 │   │   ├── .env               # 環境変数（gitignore対象）
 │   │   └── .env.template      # 環境変数テンプレート
@@ -37,24 +39,25 @@ Google AI Studio の Gemini Live API を利用。
 
 ## 現在の設定
 
-### エージェント (app/my_agent/agent.py)
+### エージェント構成 (app/my_agent/)
 - **モデル**: `gemini-2.5-flash-native-audio-preview-12-2025`（Google AI Studio Live API用）
-- **インストラクション**: 関西弁、親しみやすく親身に回答
+- **メインエージェント**: 関西弁、親しみやすく親身に回答
 - **ツール**: google_search
+- **サブエージェント**:
+  - `mysty`: 占い師（神秘的な口調、get_fortune ツール）
+  - `doctor`: 博士（知的な口調、get_trivia + google_search ツール）
 
 ### 音声・対話設定 (app/main.py RunConfig)
 - **音声**: Aoede（フレンドリーで温かい女性の声）
 - **感情的対話**: `enable_affective_dialog=True`
 - **プロアクティブ応答**: `proactivity=ProactivityConfig(proactive_audio=True)`
 
-### セッション永続化 (実装済み・動作確認中)
+### セッション永続化 (完了)
 - **バックエンド**: `DatabaseSessionService(db_url="sqlite+aiosqlite:///...")`
   - SQLite + aiosqlite で会話履歴をDBに保存
-  - 依存関係: `sqlalchemy>=2.0.0`, `aiosqlite>=0.19.0` を pyproject.toml に追加済み
+  - 依存関係: `sqlalchemy>=2.0.0`, `aiosqlite>=0.19.0`, `greenlet>=3.0.0`
 - **フロントエンド**: `localStorage` でセッションIDを保持
-  - `app/static/js/app.js` を修正済み
-  - リロード時に同じセッションIDを使用
-- **注意**: ブラウザキャッシュが残っている場合、`Cmd+Shift+R` で強制リロードが必要
+- **Docker**: ボリュームマウントで `app/data/sessions.db` を永続化
 
 ### デプロイ
 - **Docker操作スクリプト**: `./docker.sh {build|start|stop|restart|logs|status|rebuild}`
@@ -72,26 +75,20 @@ Google AI Studio の Gemini Live API を利用。
 6. [x] 感情的対話の有効化
 7. [x] プロアクティブ応答の有効化
 8. [x] 音声変更の動作確認（Charon男性声 ↔ Aoede女性声）
-9. [x] セッション永続化（実装済み・動作確認中）
+9. [x] セッション永続化（Docker永続化含む）
    - DatabaseSessionService (SQLite + aiosqlite)
    - フロントエンドでlocalStorageにsessionId保存
-   - ブラウザキャッシュクリア後に動作確認が必要
+   - docker.sh スクリプト作成
+10. [x] カスタムツール作成
+    - get_fortune(): 占い結果を返す
+    - get_trivia(): 豆知識を返す
+11. [x] サブエージェント実装
+    - mysty: 占い師（神秘的な口調）
+    - doctor: 博士（知的な口調）
 
 ## 次にやるべき作業（未着手）
 
-### 直近の課題
-- [ ] **セッション永続化の動作確認**: ブラウザで `Cmd+Shift+R` 強制リロード後に確認
-
-### カスタマイズ作業（ユーザーの要望順）
-- [ ] **カスタムツールの作成**: agent.pyに独自ツールを追加
-  - 参考: カスタマイズガイド レベル3
-  - Python関数をtools=[]に渡すだけで登録可能
-- [ ] **サブエージェントの実装**: 複数エージェントの連携
-  - `sub_agents=[]` パラメータで定義
-  - 各サブエージェントに異なる音声(speech_config)を設定可能
-
-### その他
-- [ ] GitHubへの変更プッシュ（音声設定等の変更をコミット）
+- [ ] GitHubへの変更プッシュ（サブエージェント等の変更をコミット）
 - [ ] 発表資料の更新
 - [ ] Cloud Run デプロイテスト
 
