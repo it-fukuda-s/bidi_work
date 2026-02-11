@@ -5,6 +5,8 @@ from google.adk.agents import Agent
 from .prompt import MYSTY_INSTRUCTION
 from .tools import get_fortune
 
+# NOTE: サブエージェントごとの音声設定(speech_config)は将来のADKバージョンで対応予定
+# GitHub Issue #3116 / PR #3170 参照
 mysty_agent = Agent(
     name="mysty",
     model="gemini-2.5-flash-native-audio-preview-12-2025",

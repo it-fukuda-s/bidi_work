@@ -6,6 +6,8 @@ from google.adk.tools import google_search
 from .prompt import DOCTOR_INSTRUCTION
 from .tools import get_trivia
 
+# NOTE: サブエージェントごとの音声設定(speech_config)は将来のADKバージョンで対応予定
+# GitHub Issue #3116 / PR #3170 参照
 doctor_agent = Agent(
     name="doctor",
     model="gemini-2.5-flash-native-audio-preview-12-2025",
