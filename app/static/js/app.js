@@ -670,6 +670,15 @@ function connectWebsocket() {
 
         // Handle text
         if (part.text) {
+          // Skip model's internal thinking/chain-of-thought output
+          // These contain markdown bold markers like "**Formulating...**" or "**Refining...**"
+          // Normal Japanese responses don't contain these markers
+          const hasThinkingMarkers = /\*\*[^*]+\*\*/.test(part.text);
+          if (hasThinkingMarkers) {
+            console.log("[FILTERED] Thinking output:", part.text.substring(0, 100) + "...");
+            continue;
+          }
+
           // Add a new message bubble for a new turn
           if (currentMessageId == null) {
             currentMessageId = Math.random().toString(36).substring(7);

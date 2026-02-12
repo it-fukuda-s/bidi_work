@@ -57,7 +57,7 @@ async def websocket_endpoint(
     session_id: str,
 ) -> None:
     await websocket.accept()
-    print("Connection open")
+    print(f"Connection open: user_id={user_id}, session_id={session_id}")
 
     run_config = RunConfig(
         streaming_mode=StreamingMode.BIDI,
@@ -76,6 +76,8 @@ async def websocket_endpoint(
         enable_affective_dialog=True,
         # プロアクティブ応答: 積極的に提案や補足を行う
         proactivity=types.ProactivityConfig(proactive_audio=True),
+        # 注意: session_resumption は Live API の接続タイムアウト用であり、
+        # DatabaseSessionService の会話履歴復元とは別物。追加すると動作しなくなる場合がある。
     )
 
     session = await session_service.get_session(
@@ -85,6 +87,10 @@ async def websocket_endpoint(
         await session_service.create_session(
             app_name=APP_NAME, user_id=user_id, session_id=session_id
         )
+        print(f"[SESSION] Created new session: {session_id}")
+    else:
+        event_count = len(session.events) if session.events else 0
+        print(f"[SESSION] Loaded existing session: {session_id}, events: {event_count}")
 
     live_request_queue = LiveRequestQueue()
 
